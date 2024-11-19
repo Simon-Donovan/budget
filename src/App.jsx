@@ -8,11 +8,10 @@ import {
     Title,
     Tooltip,
 } from 'chart.js';
-import Week from './Week';
-import RunningBalance from './RunningBalance';
 import { getData, postAdd } from './api';
 import { createCallOnce } from './util';
 import { add, transformRawData } from './data';
+import Month from './Month';
 
 ChartJS.register(
     CategoryScale,
@@ -24,7 +23,7 @@ ChartJS.register(
 );
 
 const callOnce = createCallOnce();
-const blankForm = { balance: '', credit: '', exclusions: '' };
+const blankForm = { available: '', credit: '' };
 
 export default function App() {
     const [data, setData] = useState();
@@ -32,7 +31,7 @@ export default function App() {
     const [saving, setSaving] = useState();
 
     function handleChange(event, name) {
-        setForm({ ...form, [name]: event.target.value });
+        setForm({ ...form, [name]: event.target.value.replace(/,/g, '') });
     }
 
     async function handleSubmit(event) {
@@ -53,31 +52,24 @@ export default function App() {
     return !data ? <div>Loading...</div> :
         <>
             <div className="chart">
-                <Week {...data.current} />
+                <Month {...data.current} />
             </div>
             {saving ? <div>Saving...</div> :
                 <form onSubmit={handleSubmit}>
                     <label>
-                        Balance:
-                        <input type="text" required value={form.balance} onChange={event => handleChange(event, 'balance')} />
+                        Available:
+                        <input type="text" required value={form.available} onChange={event => handleChange(event, 'available')} />
                     </label>
                     <label>
                         Credit:
                         <input type="text" value={form.credit} onChange={event => handleChange(event, 'credit')} />
                     </label>
-                    <label>
-                        Exclusions:
-                        <input type="text" value={form.exclusions} onChange={event => handleChange(event, 'exclusions')} />
-                    </label>
                     <button type="submit">Add</button>
                 </form>
             }
-            <div className="chart">
-                <RunningBalance {...data.runningBalance} />
-            </div>
-            {data.history.map(week =>
-                <div key={week.title} className="chart">
-                    <Week {...week} />
+            {data.history.map(month =>
+                <div key={month.title} className="chart">
+                    <Month {...month} />
                 </div>
             )}
         </>;

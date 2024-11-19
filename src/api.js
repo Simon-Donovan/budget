@@ -4,10 +4,10 @@ export async function getData() {
     return await res.json();
 }
 
-export async function postAdd(date, { balance, credit, exclusions }) {
+export async function postAdd(date, { available, credit }) {
     await fetch('/api/data/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([date, balance, credit, exclusions])
+        body: JSON.stringify([date, available, credit])
     });
 }

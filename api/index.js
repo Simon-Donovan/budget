@@ -21,13 +21,13 @@ module.exports = function (app) {
     app.get('/api/data', async (_, res) => {
         await ensureDoc();
 
-        const sheet = doc.sheetsByIndex[0];
+        const sheet = doc.sheetsByTitle.Current;
 
         const rows = await sheet.getRows();
 
         const data = {
             start: rows[0].Date.split('/').reverse().join('-'),
-            daily: rows.map(({ Balance, Credit, Exclusions }) => [num(Balance), num(Credit), num(Exclusions)])
+            daily: rows.map(({ Available, Credit }) => [num(Available), num(Credit)])
         };
 
         res.json(data);
@@ -36,7 +36,7 @@ module.exports = function (app) {
     app.post('/api/data/add', jsonParser, async (req, res) => {
         await ensureDoc();
 
-        const sheet = doc.sheetsByIndex[0];
+        const sheet = doc.sheetsByTitle.Current;
 
         await sheet.addRow(req.body);
 
