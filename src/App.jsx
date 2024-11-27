@@ -8,7 +8,7 @@ import {
     Title,
     Tooltip,
 } from 'chart.js';
-import { getData, postAdd } from './api';
+import { getData, postFetchBalance, postAdd } from './api';
 import { createCallOnce } from './util';
 import { add, transformRawData } from './data';
 import Month from './Month';
@@ -49,23 +49,35 @@ export default function App() {
         callOnce(async () => setData(transformRawData(await getData())));
     }, []);
 
+    async function onFetchBalance() {
+        setSaving(true);
+        setData(transformRawData(await postFetchBalance()));
+        setSaving(false);
+        setForm(blankForm);
+    }
+
     return !data ? <div>Loading...</div> :
         <>
             <div className="chart">
                 <Month {...data.current} />
             </div>
             {saving ? <div>Saving...</div> :
-                <form onSubmit={handleSubmit}>
-                    <label>
-                        Available:
-                        <input type="text" required value={form.available} onChange={event => handleChange(event, 'available')} />
-                    </label>
-                    <label>
-                        Credit:
-                        <input type="text" value={form.credit} onChange={event => handleChange(event, 'credit')} />
-                    </label>
-                    <button type="submit">Add</button>
-                </form>
+                <div>
+                    <h2>Automatic</h2>
+                    <p><button onClick={onFetchBalance}>Fetch Balance</button></p>
+                    <h2>Manual</h2>
+                    <form onSubmit={handleSubmit}>
+                        <label>
+                            Available:
+                            <input type="text" required value={form.available} onChange={event => handleChange(event, 'available')} />
+                        </label>
+                        <label>
+                            Credit:
+                            <input type="text" value={form.credit} onChange={event => handleChange(event, 'credit')} />
+                        </label>
+                        <button type="submit">Add</button>
+                    </form>
+                </div>
             }
             {data.history.map(month =>
                 <div key={month.title} className="chart">

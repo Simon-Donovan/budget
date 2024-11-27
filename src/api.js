@@ -4,6 +4,12 @@ export async function getData() {
     return await res.json();
 }
 
+export async function postFetchBalance() {
+    const res = await fetch('/api/data/fetch-balance', { method: 'POST' });
+
+    return await res.json();
+}
+
 export async function postAdd(date, { available, credit }) {
     await fetch('/api/data/add', {
         method: 'POST',
