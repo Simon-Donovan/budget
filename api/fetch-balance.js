@@ -1,11 +1,7 @@
 const { chromium } = require('playwright');
 const { homePage, accessNumber, accountName } = require('./account.json');
 
-const DATE_CELL = 0;
-const DESCRIPTION_CELL = 1;
-const CREDIT_CELL = 4;
-
-async function fetchBalance(context, page, today) {
+async function fetchBalance(context, page, overnight) {
     await page.goto(homePage);
 
     // Open Internet Banking
@@ -29,7 +25,8 @@ async function fetchBalance(context, page, today) {
     const errorMsgBlock = popup.locator('#errorMsgBlock');
 
     if (await errorMsgBlock.count()) {
-        const logonFailed = (await errorMsgBlock.textContent())?.includes('One or more of the input details are invalid');
+        const logonFailed = (await errorMsgBlock.textContent())
+            .includes('One or more of the input details are invalid');
 
         if (logonFailed) {
             throw new Error('Logon failed');
@@ -46,16 +43,17 @@ async function fetchBalance(context, page, today) {
     await account.locator('a').click();
     await popup.waitForLoadState();
 
-    // Extract any credits for today
-    const credits = await page.locator('tr.select-row').evaluateAll(rows => {
+    // Extract any overnight payments
+    const credits = await popup.locator('#transaction-7days tr.select-row').evaluateAll((rows, overnight) => {
+        const DATE_CELL = 0;
+        const DESCRIPTION_CELL = 1;
+        const CREDIT_CELL = 4;
+
         return rows
-            .map(row => {
-                const cells = Array.from(row.querySelectorAll('td')).map(cell => cell.textContent.trim());
-                return cells;
-            })
-            .filter(cells => cells[DATE_CELL] === today && cells[DESCRIPTION_CELL] === 'Payment - BPAY')
+            .map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.innerText.replace(/[\r\n\t]/g, '').trim()))
+            .filter(cells => cells[DATE_CELL] === overnight && cells[DESCRIPTION_CELL] === 'Payment - BPAY')
             .map(cells => cells[CREDIT_CELL]);
-    });
+    }, overnight);
 
     // Close banking
     const closed = popup.waitForEvent('close');
@@ -66,14 +64,14 @@ async function fetchBalance(context, page, today) {
     return { availableBalance, credits };
 }
 
-async function fetchBalanceHeadless(today) {
+async function fetchBalanceHeadless(overnight) {
     const browser = await chromium.launch({ headless: true });
 
     try {
         const context = await browser.newContext();
         const page = await context.newPage();
 
-        return await fetchBalance(context, page, today);
+        return await fetchBalance(context, page, overnight);
     } finally {
         await browser.close();
     }

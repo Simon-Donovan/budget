@@ -1,11 +1,10 @@
 const bodyParser = require('body-parser');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { client_email, private_key, sheet_id } = require('./sheets.json');
+const { num, yesterday } = require('./util');
 const { fetchBalanceHeadless } = require('./fetch-balance');
+const { client_email, private_key, sheet_id } = require('./sheets.json');
 
 const jsonParser = bodyParser.json();
-
-const num = val => val ? +val : 0;
 
 module.exports = function (app) {
     let doc;
@@ -41,8 +40,11 @@ module.exports = function (app) {
 
     app.post('/api/data/fetch-balance', async (_, res) => {
         const today = new Date().toLocaleDateString('en-AU');
-        const { availableBalance, credits } = await fetchBalanceHeadless(today);
-        const totalCredits = credits.reduce((total, current) => total + current.replace(/[,\$]/g, ''), 0);
+        const overnight = yesterday().toLocaleDateString('en-AU');
+
+        const { availableBalance, credits } = await fetchBalanceHeadless(overnight);
+
+        const totalCredits = credits.reduce((total, current) => total + parseFloat(current.replace(/[,\$]/g, '')), 0);
         const newRow = [
             today,
             availableBalance.replace(/[,\$]/g, ''),

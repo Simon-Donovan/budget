@@ -19,6 +19,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "e2e": "npx playwright test --ui",
     "serve": "node serve.js"
   },
   "eslintConfig": {
