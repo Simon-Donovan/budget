@@ -1,7 +1,14 @@
-const { chromium } = require('playwright');
-const { homePage, accessNumber, accountName } = require('./account.json');
+import { chromium, BrowserContext, Page } from 'playwright';
+import accountConfig from './account.json';
 
-async function fetchBalance(context, page, overnight) {
+const { homePage, accessNumber, accountName } = accountConfig;
+
+interface BalanceResult {
+    availableBalance: string;
+    credits: string[];
+}
+
+export async function fetchBalance(context: BrowserContext, page: Page, overnight: string): Promise<BalanceResult> {
     await page.goto(homePage);
 
     // Open Internet Banking
@@ -25,7 +32,7 @@ async function fetchBalance(context, page, overnight) {
     const errorMsgBlock = popup.locator('#errorMsgBlock');
 
     if (await errorMsgBlock.count()) {
-        const logonFailed = (await errorMsgBlock.textContent())
+        const logonFailed = (await errorMsgBlock.textContent())!
             .includes('One or more of the input details are invalid');
 
         if (logonFailed) {
@@ -37,23 +44,25 @@ async function fetchBalance(context, page, overnight) {
     const account = popup.locator(`[data-acctalias="${accountName}"]`).first();
 
     // Extract the available balance
-    const availableBalance = (await account.locator('.balance-details .available-balance + dd').textContent()).trim();
+    const availableBalance = (await account.locator('.balance-details .available-balance + dd').textContent())!.trim();
 
     // Navigate to account details
     await account.locator('a').click();
     await popup.waitForLoadState();
 
     // Extract any overnight payments
-    const credits = await popup.locator('#transaction-7days tr.select-row').evaluateAll((rows, overnight) => {
-        const DATE_CELL = 0;
-        const DESCRIPTION_CELL = 1;
-        const CREDIT_CELL = 4;
+    const credits = await popup.locator('#transaction-7days tr.select-row').evaluateAll(
+        (rows: HTMLElement[], overnight: string): string[] => {
+            const DATE_CELL = 0;
+            const DESCRIPTION_CELL = 1;
+            const CREDIT_CELL = 4;
 
-        return rows
-            .map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.innerText.replace(/[\r\n\t]/g, '').trim()))
-            .filter(cells => cells[DATE_CELL] === overnight && cells[DESCRIPTION_CELL] === 'Payment - BPAY')
-            .map(cells => cells[CREDIT_CELL]);
-    }, overnight);
+            return rows
+                .map(row => Array.from(row.querySelectorAll('td')).map(cell => (cell as HTMLElement).innerText.replace(/[\r\n\t]/g, '').trim()))
+                .filter(cells => cells[DATE_CELL] === overnight && cells[DESCRIPTION_CELL] === 'Payment - BPAY')
+                .map(cells => cells[CREDIT_CELL]);
+        }, overnight
+    );
 
     // Close banking
     const closed = popup.waitForEvent('close');
@@ -64,7 +73,7 @@ async function fetchBalance(context, page, overnight) {
     return { availableBalance, credits };
 }
 
-async function fetchBalanceHeadless(overnight) {
+export async function fetchBalanceHeadless(overnight: string): Promise<BalanceResult> {
     const browser = await chromium.launch({ headless: true });
 
     try {
@@ -76,8 +85,3 @@ async function fetchBalanceHeadless(overnight) {
         await browser.close();
     }
 }
-
-module.exports = {
-    fetchBalance,
-    fetchBalanceHeadless
-};

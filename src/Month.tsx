@@ -1,6 +1,12 @@
 import { Line } from 'react-chartjs-2';
 
-export default function Month({ title, labels, data }) {
+interface MonthProps {
+    title: string;
+    labels: string[];
+    data: number[];
+}
+
+export default function Month({ title, labels, data }: MonthProps) {
     const options = {
         responsive: true,
         plugins: {

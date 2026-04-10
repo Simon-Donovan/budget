@@ -10,7 +10,7 @@ import {
 } from 'chart.js';
 import { getData, postFetchBalance, postAdd } from './api';
 import { createCallOnce } from './util';
-import { add, transformRawData } from './data';
+import { add, transformRawData, AppData } from './data';
 import Month from './Month';
 
 ChartJS.register(
@@ -26,22 +26,22 @@ const callOnce = createCallOnce();
 const blankForm = { available: '', credit: '' };
 
 export default function App() {
-    const [data, setData] = useState();
+    const [data, setData] = useState<AppData | undefined>();
     const [form, setForm] = useState(blankForm);
-    const [saving, setSaving] = useState();
+    const [saving, setSaving] = useState<boolean | undefined>();
 
-    function handleChange(event, name) {
+    function handleChange(event: React.ChangeEvent<HTMLInputElement>, name: 'available' | 'credit') {
         setForm({ ...form, [name]: event.target.value.replace(/,/g, '') });
     }
 
-    async function handleSubmit(event) {
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setSaving(true);
 
-        await postAdd(data.nextDate.toLocaleDateString('en-AU'), form);
+        await postAdd(data!.nextDate.toLocaleDateString('en-AU'), form);
 
         setSaving(false);
-        setData(add(data, form));
+        setData(add(data!, form));
         setForm(blankForm);
     }
 
@@ -59,7 +59,7 @@ export default function App() {
     return !data ? <div>Loading...</div> :
         <>
             <div className="chart">
-                <Month {...data.current} />
+                <Month {...data.current!} />
             </div>
             {saving ? <div>Saving...</div> :
                 <div>
