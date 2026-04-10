@@ -13,6 +13,8 @@ import { createCallOnce } from './util';
 import { add, transformRawData, AppData } from './data';
 import Month from './Month';
 import Header, { Tab } from './Header';
+import Sidebar from './Sidebar';
+import { MONTHLY_TARGET } from './constants';
 
 ChartJS.register(
     CategoryScale,
@@ -69,8 +71,22 @@ export default function App() {
 
                     {activeTab === 'current' && (
                         <>
-                            <div className="mb-10">
-                                <Month {...data.current!} />
+                            <div className="flex gap-6 items-start mb-10">
+                                <div className="flex-1">
+                                    <Month {...data.current!} />
+                                </div>
+                                <Sidebar
+                                    currentSpend={+(data.current!.data[data.current!.data.length - 1] - data.current!.data[data.current!.data.length - 2]).toFixed(2)}
+                                    targetToday={+(MONTHLY_TARGET / (data.current!.labels.length - 1)).toFixed(2)}
+                                    revisedDailyTarget={+((MONTHLY_TARGET - data.current!.data[data.current!.data.length - 1]) / (data.current!.labels.length - data.current!.data.length)).toFixed(2)}
+                                    recentDays={Array.from({ length: Math.min(5, data.current!.data.length - 2) }, (_, i) => {
+                                        const idx = data.current!.data.length - 2 - i;
+                                        return {
+                                            label: data.current!.labels[idx],
+                                            spend: +(data.current!.data[idx] - data.current!.data[idx - 1]).toFixed(2),
+                                        };
+                                    })}
+                                />
                             </div>
 
                             {saving ? (
