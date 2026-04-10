@@ -45,7 +45,7 @@ export default function App() {
     const [showManualForm, setShowManualForm] = useState(false);
 
     function handleChange(event: React.ChangeEvent<HTMLInputElement>, name: 'available' | 'credit') {
-        setForm({ ...form, [name]: event.target.value.replace(/,/g, '') });
+        setForm({ ...form, [name]: event.target.value.replace(/[$,\s]/g, '') });
     }
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -89,7 +89,10 @@ export default function App() {
                                 <Sidebar
                                     currentSpend={+(data.current!.data[data.current!.data.length - 1] - data.current!.data[data.current!.data.length - 2]).toFixed(2)}
                                     targetToday={+(MONTHLY_TARGET / (data.current!.labels.length - 1)).toFixed(2)}
-                                    revisedDailyTarget={+((MONTHLY_TARGET - data.current!.data[data.current!.data.length - 1]) / (data.current!.labels.length - data.current!.data.length)).toFixed(2)}
+                                    variance={+(data.current!.data[data.current!.data.length - 1] - MONTHLY_TARGET * (data.current!.data.length - 1) / (data.current!.labels.length - 1)).toFixed(2)}
+                                    revisedDailyTarget={data.current!.labels.length > data.current!.data.length
+                                        ? +((MONTHLY_TARGET - data.current!.data[data.current!.data.length - 1]) / (data.current!.labels.length - data.current!.data.length)).toFixed(2)
+                                        : null}
                                     recentDays={Array.from({ length: Math.min(5, data.current!.data.length - 2) }, (_, i) => {
                                         const idx = data.current!.data.length - 2 - i;
                                         return {

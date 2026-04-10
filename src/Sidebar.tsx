@@ -6,14 +6,15 @@ interface DayEntry {
 interface SidebarProps {
     currentSpend: number;
     targetToday: number;
-    revisedDailyTarget: number;
+    revisedDailyTarget: number | null;
+    variance: number;
     recentDays: DayEntry[];
 }
 
 const fmt = (n: number) =>
     n.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-export default function Sidebar({ currentSpend, targetToday, revisedDailyTarget, recentDays }: SidebarProps) {
+export default function Sidebar({ currentSpend, targetToday, revisedDailyTarget, variance, recentDays }: SidebarProps) {
     const onTarget = currentSpend <= targetToday;
     const spendColor = onTarget ? 'text-green-500' : 'text-red-500';
 
@@ -54,14 +55,28 @@ export default function Sidebar({ currentSpend, targetToday, revisedDailyTarget,
                 </div>
 
                 {/* Revised target subsection */}
+                {revisedDailyTarget !== null && variance > 0 && (
+                    <>
+                        <div className="px-4 pt-3 pb-1">
+                            <span className="text-xs text-slate-400 uppercase tracking-wide">Revised Target</span>
+                        </div>
+                        <div className="px-4 pb-3">
+                            <span className="text-xl font-bold tabular-nums text-slate-700">
+                                ${fmt(revisedDailyTarget)}
+                            </span>
+                            <span className="text-xs text-slate-400 ml-1">/ day</span>
+                        </div>
+                    </>
+                )}
+
+                {/* Variance subsection */}
                 <div className="px-4 pt-3 pb-1">
-                    <span className="text-xs text-slate-400 uppercase tracking-wide">Revised Target</span>
+                    <span className="text-xs text-slate-400 uppercase tracking-wide">Current Progress</span>
                 </div>
                 <div className="px-4 pb-3">
-                    <span className="text-xl font-bold tabular-nums text-slate-700">
-                        ${fmt(revisedDailyTarget)}
+                    <span className={`text-xl font-bold tabular-nums ${variance <= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {variance <= 0 ? '-' : '+'}${fmt(Math.abs(variance))}
                     </span>
-                    <span className="text-xs text-slate-400 ml-1">/ day</span>
                 </div>
 
                 {/* Recent subtitle */}
