@@ -1,70 +1,100 @@
-# Getting Started with Create React App
+# Budget
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A personal daily spending tracker that pulls live bank balance data into a Google Sheet and visualises cumulative monthly spend against a configurable target.
 
-## Available Scripts
+## How it works
 
-In the project directory, you can run:
+Each day you record your bank's available balance (and any credits received). The app calculates how much you spent that day — `previous balance + credits − new balance` — and plots a cumulative spend curve for the month against a straight-line target (currently $3,500/month, set in [src/constants.ts](src/constants.ts)).
+
+Data is stored in a Google Sheet (one row per day, columns: Date, Available, Credit). The Express API server reads from and writes to that sheet via the Google Sheets API using a service-account JWT.
+
+### Adding a balance entry
+
+On the **Current** tab you have two options:
+
+- **Fetch Today's Balance** — triggers a headless browser session that logs into your bank, scrapes the available balance and any overnight credits, and writes the row to the sheet automatically.
+- **Enter manually** — reveals a small form where you type the Available and Credit values yourself.
+
+### Views
+
+| Tab | What it shows |
+|---|---|
+| Current | Line chart of cumulative spend this month + a sidebar with today's spend, daily target, variance, and a 5-day spend history |
+| Archive | The same chart for every previous month |
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript, Tailwind CSS v4, Chart.js |
+| Build | Vite 6 |
+| Backend | Node / Express (TypeScript, run via `tsx`) |
+| Data | Google Sheets API (`google-spreadsheet` + `google-auth-library`) |
+| Tests | Vitest (unit), Playwright (e2e) |
+
+## Setup
+
+### 1. Google Sheets credentials
+
+Create a service account in Google Cloud and download the JSON key. Copy the relevant fields into `api/sheets.json`:
+
+```json
+{
+  "client_email": "your-service-account@project.iam.gserviceaccount.com",
+  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+  "sheet_id": "your-google-sheet-id"
+}
+```
+
+Share the sheet with the service account email (Editor access).
+
+The sheet must have a tab named **Current** with columns: `Date`, `Available`, `Credit`.
+
+### 2. Bank credentials (optional — for auto-fetch)
+
+If you want to use the **Fetch Today's Balance** button, populate `api/account.json` with whatever credentials the headless fetch script needs. See [api/fetch-balance.ts](api/fetch-balance.ts) for the expected shape.
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+## Available scripts
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Starts the real API server (connects to Google Sheets) and the Vite dev server concurrently, then opens the app at `http://localhost:5173`.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- API server: `http://localhost:3001`
+- Frontend dev server: `http://localhost:5173`
 
-### `npm test`
+Use this for day-to-day use against live data.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### `npm run dev`
+
+Starts the **mock** API server (serves canned data from `mock/`) and the Vite dev server, then opens the app at `http://localhost:5173`.
+
+Use this for UI development without needing Google Sheets credentials.
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Type-checks the project with `tsc` then bundles the frontend with Vite into `dist/`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### `npm run preview`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Serves the production `dist/` bundle locally via Vite's built-in preview server.
 
-### `npm run eject`
+### `npm run serve`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Starts the production server (`serve.ts`) on port 3000. Serves the static `dist/` build and the real API together from a single process, then opens `http://localhost:3000/`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Run `npm run build` first.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### `npm test`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Runs the Vitest unit test suite.
 
-## Learn More
+### `npm run e2e`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Opens the Playwright UI runner for end-to-end tests (defined in `e2e/`).
