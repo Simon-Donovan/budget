@@ -16,6 +16,7 @@
   },
   "scripts": {
     "start": "concurrently \"react-scripts start\" \"ts-node --project tsconfig.node.json api/server.ts\"",
+    "dev": "concurrently \"react-scripts start\" \"ts-node --project tsconfig.node.json mock/server.ts\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -47,6 +48,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "concurrently": "^9.2.1",
+    "connect-api-mocker": "^1.11.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"
   }
