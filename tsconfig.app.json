@@ -16,8 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "composite": true
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src", "vite.config.mts"]
 }

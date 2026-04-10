@@ -16,7 +16,7 @@
   "scripts": {
     "start": "concurrently \"tsx --tsconfig tsconfig.node.json api/server.ts\" \"vite\" \"wait-on tcp:localhost:3001 tcp:localhost:5173 && open-cli http://localhost:5173\"",
     "dev": "concurrently \"tsx --tsconfig tsconfig.node.json mock/server.ts\" \"vite\" \"wait-on tcp:localhost:3001 tcp:localhost:5173 && open-cli http://localhost:5173\"",
-    "build": "tsc -b && vite build",
+    "build": "tsc -p tsconfig.app.json --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "e2e": "npx playwright test --ui",

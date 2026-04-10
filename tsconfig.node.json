@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
-    "composite": true
+    "noEmit": true
   },
   "include": ["serve.ts", "api/**/*.ts", "e2e/**/*.ts", "playwright.config.ts"]
 }
