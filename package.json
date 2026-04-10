@@ -3,56 +3,45 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "chart.js": "^4.2.0",
-    "google-spreadsheet": "^3.3.0",
-    "react": "^18.2.0",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "chart.js": "latest",
+    "express": "latest",
+    "google-auth-library": "latest",
+    "google-spreadsheet": "latest",
+    "open": "latest",
+    "react": "latest",
+    "react-chartjs-2": "latest",
+    "react-dom": "latest",
+    "web-vitals": "latest"
   },
   "scripts": {
-    "start": "concurrently \"react-scripts start\" \"ts-node --project tsconfig.node.json api/server.ts\"",
-    "dev": "concurrently \"react-scripts start\" \"ts-node --project tsconfig.node.json mock/server.ts\"",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "concurrently \"tsx --tsconfig tsconfig.node.json api/server.ts\" \"vite\" \"wait-on tcp:localhost:3001 tcp:localhost:5173 && open-cli http://localhost:5173\"",
+    "dev": "concurrently \"tsx --tsconfig tsconfig.node.json mock/server.ts\" \"vite\" \"wait-on tcp:localhost:3001 tcp:localhost:5173 && open-cli http://localhost:5173\"",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
     "e2e": "npx playwright test --ui",
-    "serve": "ts-node --project tsconfig.node.json serve.ts"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "serve": "tsx --tsconfig tsconfig.node.json serve.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
-    "@types/express": "^4.17.25",
-    "@types/node": "^22.10.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "autoprefixer": "^10.4.27",
-    "concurrently": "^9.2.1",
-    "connect-api-mocker": "^1.11.0",
-    "postcss": "^8.5.9",
-    "tailwindcss": "^3.4.19",
-    "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "@playwright/test": "latest",
+    "@tailwindcss/vite": "latest",
+    "@testing-library/jest-dom": "latest",
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "^4",
+    "@vitest/coverage-v8": "latest",
+    "concurrently": "latest",
+    "connect-api-mocker": "latest",
+    "tailwindcss": "latest",
+    "open-cli": "^8",
+    "tsx": "latest",
+    "wait-on": "latest",
+    "typescript": "latest",
+    "vite": "^6",
+    "vitest": "latest"
   }
 }
