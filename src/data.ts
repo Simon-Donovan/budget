@@ -1,4 +1,5 @@
 import { num } from "./util";
+import { RawData } from "./api";
 
 const months = [
     "January", "February", "March", "April",
@@ -6,11 +7,24 @@ const months = [
     "September", "October", "November", "December"
 ];
 
-function formateDate(date) {
+interface MonthData {
+    title: string;
+    labels: string[];
+    data: number[];
+}
+
+export interface AppData {
+    nextDate: Date;
+    currentAvailable: number | undefined;
+    current: MonthData | undefined;
+    history: MonthData[];
+}
+
+function formateDate(date: Date): string {
     return `${date.getDate()}/${date.getMonth() + 1}`;
 }
 
-function getMonthMetadata(nextDate) {
+function getMonthMetadata(nextDate: Date): { title: string; labels: string[]; monthEnd: Date } {
     const day = new Date(nextDate);
     const labels = ['', formateDate(day)];
     const monthEnd = new Date(nextDate);
@@ -29,13 +43,13 @@ function getMonthMetadata(nextDate) {
     return { title, labels, monthEnd };
 }
 
-export function transformRawData(raw) {
+export function transformRawData(raw: RawData): AppData {
     let nextDate = new Date(raw.start);
     let monthEnd = new Date(nextDate);
-    let currentAvailable;
-    let current;
-    let history = [];
-    let totalSpent;
+    let currentAvailable: number | undefined;
+    let current: MonthData | undefined;
+    let history: MonthData[] = [];
+    let totalSpent = 0;
 
     raw.daily.forEach(day => {
         const [available, credit] = day;
@@ -60,7 +74,7 @@ export function transformRawData(raw) {
                 };
             } else {
                 totalSpent += spent;
-                current.data.push(+totalSpent.toFixed(2));
+                current!.data.push(+totalSpent.toFixed(2));
             }
         }
 
@@ -73,15 +87,15 @@ export function transformRawData(raw) {
 }
 
 export function add(
-    { nextDate, currentAvailable, current, history },
-    { available, credit }
-) {
+    { nextDate, currentAvailable, current, history }: AppData,
+    { available, credit }: { available: string; credit: string }
+): AppData {
     nextDate = new Date(nextDate);
 
-    const spent = currentAvailable + num(credit) - num(available);
+    const spent = currentAvailable! + num(credit) - num(available);
 
-    if (current.data.length === current.labels.length) {
-        history = [current, ...history];
+    if (current!.data.length === current!.labels.length) {
+        history = [current!, ...history];
 
         const { title, labels } = getMonthMetadata(nextDate);
 
@@ -92,9 +106,9 @@ export function add(
         };
     } else {
         current = {
-            ...current,
-            data: [...current.data, +(current.data[current.data.length - 1] + spent).toFixed(2)]
-        }
+            ...current!,
+            data: [...current!.data, +(current!.data[current!.data.length - 1] + spent).toFixed(2)]
+        };
     }
 
     currentAvailable = num(available);

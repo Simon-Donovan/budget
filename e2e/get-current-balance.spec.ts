@@ -1,6 +1,6 @@
-const { test } = require('@playwright/test');
-const { yesterday } = require('../api/util');
-const { fetchBalance } = require('../api/fetch-balance');
+import { test } from '@playwright/test';
+import { yesterday } from '../api/util';
+import { fetchBalance } from '../api/fetch-balance';
 
 test('get current balance', async ({ context, page }) => {
     const overnight = yesterday().toLocaleDateString('en-AU');

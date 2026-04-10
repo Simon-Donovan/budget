@@ -1,13 +1,15 @@
-const bodyParser = require('body-parser');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const { num, yesterday } = require('./util');
-const { fetchBalanceHeadless } = require('./fetch-balance');
-const { client_email, private_key, sheet_id } = require('./sheets.json');
+import bodyParser from 'body-parser';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { Application } from 'express';
+import { num, yesterday } from './util';
+import { fetchBalanceHeadless } from './fetch-balance';
+import sheetsConfig from './sheets.json';
 
+const { client_email, private_key, sheet_id } = sheetsConfig;
 const jsonParser = bodyParser.json();
 
-module.exports = function (app) {
-    let doc;
+export default function (app: Application) {
+    let doc: GoogleSpreadsheet | undefined;
 
     const ensureDoc = async () => {
         if (!doc) {
@@ -18,12 +20,12 @@ module.exports = function (app) {
         }
     };
 
-    const getData = async (sheet) => {
+    const getData = async (sheet: any) => {
         const rows = await sheet.getRows();
 
         const data = {
             start: rows[0].Date.split('/').reverse().join('-'),
-            daily: rows.map(({ Available, Credit }) => [num(Available), num(Credit)])
+            daily: rows.map(({ Available, Credit }: { Available: string; Credit: string }) => [num(Available), num(Credit)])
         };
 
         return data;
@@ -32,7 +34,7 @@ module.exports = function (app) {
     app.get('/api/data', async (_, res) => {
         await ensureDoc();
 
-        const sheet = doc.sheetsByTitle.Current;
+        const sheet = doc!.sheetsByTitle['Current'];
         const data = await getData(sheet);
 
         res.json(data);
@@ -44,16 +46,16 @@ module.exports = function (app) {
 
         const { availableBalance, credits } = await fetchBalanceHeadless(overnight);
 
-        const totalCredits = credits.reduce((total, current) => total + parseFloat(current.replace(/[,\$]/g, '')), 0);
+        const totalCredits = credits.reduce((total, current) => total + parseFloat(current.replace(/[,$]/g, '')), 0);
         const newRow = [
             today,
-            availableBalance.replace(/[,\$]/g, ''),
+            availableBalance.replace(/[,$]/g, ''),
             totalCredits ? totalCredits.toFixed(2) : ''
         ];
 
         await ensureDoc();
 
-        const sheet = doc.sheetsByTitle.Current;
+        const sheet = doc!.sheetsByTitle['Current'];
 
         await sheet.addRow(newRow);
 
@@ -65,7 +67,7 @@ module.exports = function (app) {
     app.post('/api/data/add', jsonParser, async (req, res) => {
         await ensureDoc();
 
-        const sheet = doc.sheetsByTitle.Current;
+        const sheet = doc!.sheetsByTitle['Current'];
 
         await sheet.addRow(req.body);
 
