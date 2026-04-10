@@ -1,4 +1,5 @@
 import { Line } from 'react-chartjs-2';
+import { MONTHLY_TARGET } from './constants';
 
 interface MonthProps {
     title: string;
@@ -29,7 +30,7 @@ export default function Month({ title, labels, data }: MonthProps) {
             {
                 label: 'Target',
                 spanGaps: true,
-                data: [0, ...Array(labels.length - 2).fill(null), 3500],
+                data: [0, ...Array(labels.length - 2).fill(null), MONTHLY_TARGET],
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
             },
