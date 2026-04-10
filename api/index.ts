@@ -13,10 +13,12 @@ export default function (app: Application) {
 
     const ensureDoc = async () => {
         if (!doc) {
-            doc = new GoogleSpreadsheet(sheet_id);
+            const newDoc = new GoogleSpreadsheet(sheet_id);
 
-            await doc.useServiceAccountAuth({ client_email, private_key });
-            await doc.loadInfo();
+            await newDoc.useServiceAccountAuth({ client_email, private_key });
+            await newDoc.loadInfo();
+
+            doc = newDoc;
         }
     };
 

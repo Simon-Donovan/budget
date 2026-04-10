@@ -39,6 +39,7 @@ const blankForm = { available: '', credit: '' };
 
 export default function App() {
     const [data, setData] = useState<AppData | undefined>();
+    const [loadError, setLoadError] = useState(false);
     const [form, setForm] = useState(blankForm);
     const [saving, setSaving] = useState<boolean | undefined>();
     const [activeTab, setActiveTab] = useState<Tab>('current');
@@ -59,7 +60,13 @@ export default function App() {
     }
 
     useEffect(() => {
-        callOnce(async () => setData(transformRawData(await getData())));
+        callOnce(async () => {
+            try {
+                setData(transformRawData(await getData()));
+            } catch {
+                setLoadError(true);
+            }
+        });
     }, []);
 
     async function onFetchBalance() {
@@ -73,7 +80,13 @@ export default function App() {
         <div className="min-h-screen bg-white">
             <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
-            {!data ? (
+            {loadError ? (
+                <div className="max-w-5xl mx-auto px-6 py-10">
+                    <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        Something went wrong loading your budget. Please refresh the page to try again.
+                    </div>
+                </div>
+            ) : !data ? (
                 <div className="max-w-5xl mx-auto px-6 py-10 text-slate-500">
                     Loading…
                 </div>
