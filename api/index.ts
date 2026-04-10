@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { JWT } from 'google-auth-library';
 import { Application, NextFunction } from 'express';
 import { num, yesterday } from './util';
 import { fetchBalanceHeadless } from './fetch-balance';
@@ -13,9 +14,13 @@ export default function (app: Application) {
 
     const ensureDoc = async () => {
         if (!doc) {
-            const newDoc = new GoogleSpreadsheet(sheet_id);
+            const auth = new JWT({
+                email: client_email,
+                key: private_key,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+            });
+            const newDoc = new GoogleSpreadsheet(sheet_id, auth);
 
-            await newDoc.useServiceAccountAuth({ client_email, private_key });
             await newDoc.loadInfo();
 
             doc = newDoc;
@@ -26,8 +31,8 @@ export default function (app: Application) {
         const rows = await sheet.getRows();
 
         const data = {
-            start: rows[0].Date.split('/').reverse().join('-'),
-            daily: rows.map(({ Available, Credit }: { Available: string; Credit: string }) => [num(Available), num(Credit)])
+            start: rows[0].get('Date').split('/').reverse().join('-'),
+            daily: rows.map((row: any) => [num(row.get('Available')), num(row.get('Credit'))])
         };
 
         return data;

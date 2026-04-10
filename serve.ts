@@ -4,11 +4,11 @@ import apiSetup from './api';
 const app = express();
 const port = 3000;
 
-app.use(express.static('build'));
+app.use(express.static('dist'));
 apiSetup(app);
 
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Budget app listening on port ${port}`);
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    require('open')('http://localhost:3000/');
+    const { default: open } = await import('open');
+    open('http://localhost:3000/');
 });
