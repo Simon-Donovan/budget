@@ -1,6 +1,6 @@
 import bodyParser from 'body-parser';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
-import { Application } from 'express';
+import { Application, NextFunction } from 'express';
 import { num, yesterday } from './util';
 import { fetchBalanceHeadless } from './fetch-balance';
 import sheetsConfig from './sheets.json';
@@ -31,46 +31,58 @@ export default function (app: Application) {
         return data;
     };
 
-    app.get('/api/data', async (_, res) => {
-        await ensureDoc();
+    app.get('/api/data', async (_, res, next: NextFunction) => {
+        try {
+            await ensureDoc();
 
-        const sheet = doc!.sheetsByTitle['Current'];
-        const data = await getData(sheet);
+            const sheet = doc!.sheetsByTitle['Current'];
+            const data = await getData(sheet);
 
-        res.json(data);
+            res.json(data);
+        } catch (err) {
+            next(err);
+        }
     });
 
-    app.post('/api/data/fetch-balance', async (_, res) => {
-        const today = new Date().toLocaleDateString('en-AU');
-        const overnight = yesterday().toLocaleDateString('en-AU');
+    app.post('/api/data/fetch-balance', async (_, res, next: NextFunction) => {
+        try {
+            const today = new Date().toLocaleDateString('en-AU');
+            const overnight = yesterday().toLocaleDateString('en-AU');
 
-        const { availableBalance, credits } = await fetchBalanceHeadless(overnight);
+            const { availableBalance, credits } = await fetchBalanceHeadless(overnight);
 
-        const totalCredits = credits.reduce((total, current) => total + parseFloat(current.replace(/[,$]/g, '')), 0);
-        const newRow = [
-            today,
-            availableBalance.replace(/[,$]/g, ''),
-            totalCredits ? totalCredits.toFixed(2) : ''
-        ];
+            const totalCredits = credits.reduce((total, current) => total + parseFloat(current.replace(/[,$]/g, '')), 0);
+            const newRow = [
+                today,
+                availableBalance.replace(/[,$]/g, ''),
+                totalCredits ? totalCredits.toFixed(2) : ''
+            ];
 
-        await ensureDoc();
+            await ensureDoc();
 
-        const sheet = doc!.sheetsByTitle['Current'];
+            const sheet = doc!.sheetsByTitle['Current'];
 
-        await sheet.addRow(newRow);
+            await sheet.addRow(newRow);
 
-        const data = await getData(sheet);
+            const data = await getData(sheet);
 
-        res.json(data);
+            res.json(data);
+        } catch (err) {
+            next(err);
+        }
     });
 
-    app.post('/api/data/add', jsonParser, async (req, res) => {
-        await ensureDoc();
+    app.post('/api/data/add', jsonParser, async (req, res, next: NextFunction) => {
+        try {
+            await ensureDoc();
 
-        const sheet = doc!.sheetsByTitle['Current'];
+            const sheet = doc!.sheetsByTitle['Current'];
 
-        await sheet.addRow(req.body);
+            await sheet.addRow(req.body);
 
-        res.end();
+            res.end();
+        } catch (err) {
+            next(err);
+        }
     });
 };
