@@ -21,10 +21,17 @@ export async function fetchBalance(context: BrowserContext, page: Page, overnigh
 
     await popup.waitForLoadState();
 
+    const securityNumber = process.env.SECURITY_NUMBER;
+    const internetPassword = process.env.INTERNET_PASSWORD;
+
+    if (!securityNumber || !internetPassword) {
+        throw new Error('SECURITY_NUMBER and INTERNET_PASSWORD environment variables must be set');
+    }
+
     // Logon
     await popup.fill('#access-number', accessNumber);
-    await popup.fill('#securityNumber', process.env.SECURITY_NUMBER || '0000');
-    await popup.fill('#internet-password', process.env.INTERNET_PASSWORD || 'not-found');
+    await popup.fill('#securityNumber', securityNumber);
+    await popup.fill('#internet-password', internetPassword);
     await popup.locator('#logonButton').click();
 
     await popup.waitForLoadState();
